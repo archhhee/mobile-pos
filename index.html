@@ -12,51 +12,17 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f8fafc;
-            touch-action: pan-x pan-y;
-        }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .bottom-sheet {
-            transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        }
-        .bottom-sheet.open {
-            transform: translateY(0);
-        }
-        .tap-effect {
-            transition: all 0.1s ease;
-        }
-        .tap-effect:active {
-            transform: scale(0.96);
-            opacity: 0.8;
-        }
-        .product-card {
-            transition: all 0.2s ease;
-        }
-        .product-card:active {
-            transform: scale(0.97);
-        }
-        @media print {
-            body * { visibility: hidden; }
-            .receipt-print-area, .receipt-print-area * { visibility: visible; }
-            .receipt-print-area { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; background: white; }
-        }
-        input, button, select, textarea {
-            font-size: 16px;
-        }
-        .safe-bottom {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
+        * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; touch-action: pan-x pan-y; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .bottom-sheet { transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
+        .bottom-sheet.open { transform: translateY(0); }
+        .tap-effect:active { transform: scale(0.96); opacity: 0.8; transition: all 0.1s ease; }
+        .product-card:active { transform: scale(0.97); }
+        @media print { body * { visibility: hidden; } .receipt-print-area, .receipt-print-area * { visibility: visible; } .receipt-print-area { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; background: white; box-shadow: none; } }
+        input, button, select, textarea { font-size: 16px; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
 <body class="h-[100dvh] flex flex-col overflow-hidden">
@@ -69,13 +35,13 @@
                     <i class="fa-solid fa-store"></i>
                 </div>
                 <h1 class="text-2xl font-black tracking-tight mt-3">ArchX Go</h1>
-                <p class="text-xs text-slate-500 font-medium">Mobile POS Terminal</p>
+                <p class="text-xs text-slate-500 font-medium">POS Terminal</p>
             </div>
             <div class="bg-white/80 backdrop-blur-sm border border-slate-200 p-5 rounded-2xl shadow-lg">
                 <input type="email" id="loginEmail" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="Email">
                 <input type="password" id="loginPassword" class="w-full mt-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono tracking-wider focus:outline-none focus:border-blue-500" placeholder="Password">
                 <p id="loginErrorMsg" class="text-xs font-bold text-red-500 hidden text-center bg-red-50 py-2 rounded-xl mt-3"></p>
-                <button onclick="performSecureLogin()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm uppercase tracking-wider shadow-md transition-all tap-effect">Login</button>
+                <button onclick="performLogin()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm uppercase tracking-wider shadow-md transition-all tap-effect">Login</button>
             </div>
         </div>
     </div>
@@ -94,13 +60,13 @@
         </header>
 
         <div class="flex-1 overflow-hidden relative">
-            <!-- Cashier View -->
+            <!-- CASHIER VIEW -->
             <section id="cashierPanel" class="absolute inset-0 flex flex-col overflow-hidden">
                 <div id="categoryStrip" class="px-3 py-2 flex gap-2 overflow-x-auto no-scrollbar shrink-0 bg-slate-50 border-b border-slate-200"></div>
                 <div id="productCatalog" class="flex-1 overflow-y-auto p-3 pb-28 grid grid-cols-2 gap-3 content-start"></div>
             </section>
 
-            <!-- Admin View -->
+            <!-- ADMIN PANEL (full features) -->
             <section id="adminPanel" class="absolute inset-0 hidden overflow-y-auto pb-24">
                 <div class="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-2 py-2">
                     <div class="flex gap-1 overflow-x-auto no-scrollbar">
@@ -108,13 +74,12 @@
                         <button onclick="switchAdminTab('inventory')" id="tabInventory" class="px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap text-slate-600">Inventory</button>
                         <button onclick="switchAdminTab('qr')" id="tabQr" class="px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap text-slate-600">QR Codes</button>
                         <button onclick="switchAdminTab('receipt')" id="tabReceipt" class="px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap text-slate-600">Receipt</button>
-                        <button onclick="switchAdminTab('account')" id="tabAccount" class="px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap text-slate-600">Account</button>
-                        <button onclick="switchAdminTab('staff')" id="tabStaff" class="px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap text-slate-600">Staff</button>
                         <button onclick="switchAdminTab('ledger')" id="tabLedger" class="px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap text-slate-600">Ledger</button>
                     </div>
                 </div>
 
                 <div class="p-3 space-y-3">
+                    <!-- Analytics -->
                     <div id="analyticsContent" class="space-y-3">
                         <div class="grid grid-cols-2 gap-2">
                             <div class="bg-white border border-slate-200 p-3 rounded-xl"><span class="text-[9px] uppercase font-black text-slate-500">Daily</span><h3 id="dailySalesKpi" class="text-lg font-black font-mono text-blue-600">₱0.00</h3></div>
@@ -126,56 +91,45 @@
                         <div class="bg-white border border-slate-200 p-3 rounded-xl"><div class="flex justify-between border-b pb-2"><h4 class="text-[10px] font-extrabold uppercase">Recent Orders</h4></div><div id="recentOrdersContainer" class="space-y-2 mt-2"></div></div>
                     </div>
 
+                    <!-- Inventory with Edit/Delete -->
                     <div id="inventoryContent" class="hidden space-y-3">
                         <div class="bg-white border border-slate-200 p-3 rounded-xl">
-                            <h4 class="text-[10px] font-extrabold uppercase flex items-center gap-2"><i class="fa-solid fa-plus-circle text-blue-600"></i> Add Product</h4>
+                            <h4 class="text-[10px] font-extrabold uppercase flex items-center gap-2"><i class="fa-solid fa-plus-circle text-blue-600"></i> Add New Product</h4>
                             <div class="grid grid-cols-2 gap-2 mt-2">
-                                <input type="text" id="newProductName" placeholder="Name" class="col-span-2 bg-slate-50 border rounded-lg px-3 py-2 text-xs">
+                                <input type="text" id="newProductName" placeholder="Product Name" class="col-span-2 bg-slate-50 border rounded-lg px-3 py-2 text-xs">
                                 <input type="text" id="newProductCat" placeholder="Category" class="bg-slate-50 border rounded-lg px-3 py-2 text-xs">
                                 <input type="number" id="newProductPrice" placeholder="Price" class="bg-slate-50 border rounded-lg px-3 py-2 text-xs">
                                 <input type="number" id="newProductStock" placeholder="Stock" value="10" class="bg-slate-50 border rounded-lg px-3 py-2 text-xs">
                             </div>
-                            <button onclick="addProductToFirestore()" class="w-full mt-2 bg-slate-800 text-white text-[10px] font-black py-2 rounded-lg">➕ Add</button>
+                            <button onclick="addProduct()" class="w-full mt-2 bg-slate-800 text-white text-[10px] font-black py-2 rounded-lg tap-effect">➕ Add Product</button>
                         </div>
-                        <div class="bg-white border border-slate-200 p-3 rounded-xl"><h4 class="text-xs font-bold">Stock Control</h4><div id="stockManagerList" class="space-y-2 mt-2 max-h-80 overflow-y-auto"></div></div>
+                        <div class="bg-white border border-slate-200 p-3 rounded-xl">
+                            <h4 class="text-xs font-bold mb-2">✏️ Product Management (Edit / Delete)</h4>
+                            <div id="stockManagerList" class="space-y-2 max-h-80 overflow-y-auto"></div>
+                        </div>
                     </div>
 
+                    <!-- QR Codes -->
                     <div id="qrContent" class="hidden bg-white border border-slate-200 p-3 rounded-xl space-y-3">
                         <h4 class="text-[10px] font-extrabold uppercase">Payment QR Codes</h4>
                         <div><label class="text-[9px] font-bold">GCash QR</label><input type="file" id="gcashQrUpload" accept="image/*" class="w-full text-xs bg-slate-50 p-2 rounded"><div id="gcashQrPreview" class="w-24 h-24 border-2 border-dashed rounded-lg mt-2 flex items-center justify-center bg-slate-50 overflow-hidden"><i class="fa-solid fa-camera text-2xl text-slate-300"></i></div></div>
                         <div><label class="text-[9px] font-bold">Maya QR</label><input type="file" id="mayaQrUpload" accept="image/*" class="w-full text-xs bg-slate-50 p-2 rounded"><div id="mayaQrPreview" class="w-24 h-24 border-2 border-dashed rounded-lg mt-2 flex items-center justify-center bg-slate-50 overflow-hidden"><i class="fa-solid fa-camera text-2xl text-slate-300"></i></div></div>
-                        <button onclick="saveQrCodesToFirestore()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs">Save QR</button>
+                        <button onclick="saveQRCodes()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs tap-effect">Save QR Codes</button>
                     </div>
 
+                    <!-- Receipt Layout -->
                     <div id="receiptContent" class="hidden bg-white border border-slate-200 p-3 rounded-xl space-y-3">
                         <h4 class="text-[10px] font-extrabold uppercase">Receipt Layout</h4>
                         <input type="text" id="receiptStoreName" placeholder="Store Name" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
                         <input type="text" id="receiptAddress" placeholder="Address" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
                         <input type="text" id="receiptPhone" placeholder="Phone" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
-                        <input type="text" id="receiptFooter" placeholder="Footer" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
-                        <button onclick="saveReceiptSettingsToFirestore()" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs">Save Settings</button>
+                        <input type="text" id="receiptFooter" placeholder="Footer Message" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
+                        <button onclick="saveReceiptSettings()" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs tap-effect">Save Settings</button>
                     </div>
 
-                    <div id="accountContent" class="hidden bg-white border border-slate-200 p-3 rounded-xl space-y-3">
-                        <h4 class="text-[10px] font-extrabold uppercase">Change Credentials</h4>
-                        <input type="email" id="newEmail" placeholder="New Email" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
-                        <input type="password" id="currentPassword" placeholder="Current Password" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
-                        <input type="password" id="newPassword" placeholder="New Password (optional)" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
-                        <button onclick="updateCredentials()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs">Update</button>
-                        <p id="accountMsg" class="text-xs text-center hidden"></p>
-                    </div>
-
-                    <div id="staffContent" class="hidden bg-white border border-slate-200 p-3 rounded-xl space-y-3">
-                        <h4 class="text-[10px] font-extrabold uppercase">Add Staff</h4>
-                        <input type="email" id="staffEmail" placeholder="Staff Email" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
-                        <input type="password" id="staffPassword" placeholder="Password" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
-                        <button onclick="createStaffViaFunction()" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs">➕ Add Staff</button>
-                        <p id="staffMsg" class="text-xs text-center hidden"></p>
-                        <div class="text-[9px] text-amber-600 bg-amber-50 p-2 rounded">⚠️ Requires Cloud Function `createStaff`</div>
-                    </div>
-
+                    <!-- Ledger with Delete Button -->
                     <div id="ledgerContent" class="hidden space-y-3">
-                        <button onclick="exportLedgerData()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl text-xs">📊 Export Ledger</button>
+                        <button onclick="exportLedger()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl text-xs tap-effect">📊 Export Ledger (Excel)</button>
                         <div id="ledgerRecords" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
                     </div>
                 </div>
@@ -184,54 +138,86 @@
 
         <!-- Sticky Checkout Button -->
         <div id="stickyCartButton" class="fixed bottom-14 left-0 right-0 bg-gradient-to-t from-slate-50 via-slate-50/95 to-transparent p-3 pt-5 z-20 pointer-events-none">
-            <button onclick="openCheckoutDrawer()" id="checkoutTriggerBtn" disabled class="pointer-events-auto w-full bg-blue-600 text-white font-bold h-12 rounded-xl flex justify-between items-center px-4 shadow-lg disabled:opacity-0 disabled:pointer-events-none tap-effect">
+            <button onclick="openCheckout()" id="checkoutTriggerBtn" disabled class="pointer-events-auto w-full bg-blue-600 text-white font-bold h-12 rounded-xl flex justify-between items-center px-4 shadow-lg disabled:opacity-0 disabled:pointer-events-none tap-effect">
                 <div class="flex gap-2"><span id="cartItemCount" class="bg-white/20 px-2 py-0.5 rounded-md text-xs font-mono">0</span><span class="text-xs uppercase">View Order</span></div>
                 <span id="cartTotalAmount" class="font-mono font-bold text-sm">₱0.00</span>
             </button>
         </div>
 
-        <!-- Mobile Bottom Navigation -->
+        <!-- Bottom Navigation -->
         <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 safe-bottom">
             <div class="flex items-center justify-around h-14">
-                <button onclick="switchUserView('cashier')" id="navCashierBtn" class="flex flex-col items-center gap-0.5 text-blue-600 tap-effect"><i class="fa-solid fa-box-open text-lg"></i><span class="text-[9px] font-extrabold">Products</span></button>
-                <button onclick="switchUserView('admin')" id="navAdminBtn" class="flex flex-col items-center gap-0.5 text-slate-500 tap-effect"><i class="fa-solid fa-chart-line text-lg"></i><span class="text-[9px] font-extrabold">Manager</span></button>
+                <button onclick="switchView('cashier')" id="navCashierBtn" class="flex flex-col items-center gap-0.5 text-blue-600 tap-effect"><i class="fa-solid fa-box-open text-lg"></i><span class="text-[9px] font-extrabold">Products</span></button>
+                <button onclick="switchView('admin')" id="navAdminBtn" class="flex flex-col items-center gap-0.5 text-slate-500 tap-effect"><i class="fa-solid fa-chart-line text-lg"></i><span class="text-[9px] font-extrabold">Manager</span></button>
                 <button onclick="logout()" class="flex flex-col items-center gap-0.5 text-red-500/80 tap-effect"><i class="fa-solid fa-right-from-bracket text-lg"></i><span class="text-[9px] font-extrabold">Exit</span></button>
             </div>
         </nav>
     </div>
 
-    <!-- CHECKOUT SHEET -->
-    <div id="checkoutDrawer" class="fixed inset-0 z-50 pointer-events-none flex flex-col justify-end">
-        <div id="drawerBackdrop" onclick="closeCheckoutDrawer()" class="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-none"></div>
-        <div id="drawerPanel" class="bottom-sheet bg-white w-full h-[90dvh] rounded-t-2xl flex flex-col pointer-events-auto border-t shadow-2xl">
+    <!-- CHECKOUT SHEET (Two-Step) -->
+    <div id="checkoutSheet" class="fixed inset-0 z-50 pointer-events-none flex flex-col justify-end">
+        <div id="sheetBackdrop" onclick="closeCheckout()" class="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+        <div id="sheetPanel" class="bottom-sheet bg-white w-full h-[90dvh] rounded-t-2xl flex flex-col pointer-events-auto border-t shadow-2xl">
             <div class="w-12 h-1 bg-slate-300 rounded-full mx-auto my-2"></div>
             <div class="flex justify-between items-center px-4 pb-2 border-b shrink-0">
-                <div><h2 class="font-black text-base">Your Order</h2><div class="flex gap-2 mt-1"><button onclick="setOrderDiningType('DINE')" id="dineTypeBtn" class="text-[9px] font-bold px-3 py-1 rounded-full bg-blue-600 text-white">Dine In</button><button onclick="setOrderDiningType('TAKE')" id="takeTypeBtn" class="text-[9px] font-bold px-3 py-1 rounded-full bg-white border text-slate-600">Take Out</button></div></div>
+                <div><h2 class="font-black text-base">Your Order</h2><div class="flex gap-2 mt-1"><button onclick="setOrderType('DINE')" id="dineBtn" class="text-[9px] font-bold px-3 py-1 rounded-full bg-blue-600 text-white">Dine In</button><button onclick="setOrderType('TAKE')" id="takeBtn" class="text-[9px] font-bold px-3 py-1 rounded-full bg-white border text-slate-600">Take Out</button></div></div>
                 <button onclick="clearCart()" class="text-[9px] font-extrabold text-red-500 bg-red-50 px-2 py-1 rounded-lg">Clear</button>
             </div>
-            <div id="cartItemsListStep1" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
-            <div class="bg-white p-4 rounded-t-2xl border-t space-y-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
-                <div><span class="text-[9px] font-black uppercase text-slate-500">Payment</span><div class="flex gap-2 mt-1"><button onclick="selectPaymentMethod('Cash')" id="methodCash" class="flex-1 py-2 rounded-lg text-[10px] font-extrabold border-2 border-blue-600 bg-blue-50 text-blue-700">Cash</button><button onclick="selectPaymentMethod('GCash')" id="methodGcash" class="flex-1 py-2 rounded-lg text-[10px] font-extrabold border border-slate-200 bg-white text-slate-600">GCash</button><button onclick="selectPaymentMethod('Maya')" id="methodMaya" class="flex-1 py-2 rounded-lg text-[10px] font-extrabold border border-slate-200 bg-white text-slate-600">Maya</button></div></div>
-                <div id="digitalQrButtons" class="grid grid-cols-2 gap-2 hidden"><button onclick="showQrModal('gcash')" class="bg-blue-50 border p-2 rounded-lg text-[10px] font-bold">📱 GCash QR</button><button onclick="showQrModal('maya')" class="bg-purple-50 border p-2 rounded-lg text-[10px] font-bold">💳 Maya QR</button></div>
-                <div id="ewalletAmountSection" class="hidden"><input type="number" id="ewalletAmountInput" placeholder="Amount" class="w-full bg-slate-50 border rounded-lg p-2 text-sm font-mono"><p class="text-[8px] text-slate-400 mt-1">Customer scans QR for this amount</p></div>
-                <div class="grid grid-cols-4 gap-1"><button onclick="applyDiscount('NONE')" id="discountNone" class="py-1.5 rounded-lg text-[9px] font-extrabold border-2 border-blue-600 bg-blue-50 text-blue-600">No Disc</button><button onclick="applyDiscount('PROMO')" id="discountPromo" class="py-1.5 rounded-lg text-[9px] font-extrabold border border-slate-200 bg-white text-slate-600">5%</button><button onclick="applyDiscount('REDO')" id="discountRedo" class="py-1.5 rounded-lg text-[9px] font-extrabold border border-slate-200 bg-white text-slate-600">10%</button><button onclick="applyDiscount('SENIOR')" id="discountSenior" class="py-1.5 rounded-lg text-[9px] font-extrabold border border-slate-200 bg-white text-slate-600">20%</button></div>
-                <div class="space-y-1 bg-slate-50 p-2 rounded-lg"><div class="flex justify-between text-xs"><span>Subtotal</span><span id="checkoutSubtotal" class="font-mono">₱0.00</span></div><div class="flex justify-between text-xs text-amber-600"><span>Discount</span><span id="checkoutDiscountAmount" class="font-mono">-₱0.00</span></div><div class="flex justify-between text-base font-black"><span>Payable</span><span id="checkoutPayable" class="text-xl font-black text-blue-600">₱0.00</span></div></div>
-                <div id="cashPaymentSection"><div class="grid grid-cols-2 gap-2"><div class="bg-slate-50 border rounded-lg p-2"><span class="text-[8px] uppercase font-bold">Cash</span><input type="number" id="cashReceivedInput" oninput="updateChange()" class="bg-transparent w-full font-mono font-bold outline-none text-sm" placeholder="0.00"></div><div class="bg-slate-50 border rounded-lg p-2"><span class="text-[8px] uppercase font-bold">Change</span><span id="changeDueDisplay" class="text-sm font-black text-green-600 block">₱0.00</span></div></div></div>
-                <button onclick="commitTransactionToFirestore()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-3 rounded-xl text-sm uppercase shadow-md tap-effect">Confirm & Pay</button>
+
+            <!-- Step 1: Order Card -->
+            <div id="orderStep" class="flex-1 flex flex-col overflow-hidden">
+                <div class="flex-1 overflow-y-auto p-3 space-y-2" id="cartItemsList"></div>
+                <div class="p-3 border-t bg-white">
+                    <div class="bg-slate-50 rounded-xl p-2 mb-2 flex justify-between text-xs">
+                        <span>Total items: <span id="stepTotalQty">0</span></span>
+                        <span>Subtotal: <span id="stepSubtotal">₱0.00</span></span>
+                    </div>
+                    <button onclick="goToPayment()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm tap-effect">Proceed to Payment →</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Payment Card -->
+            <div id="paymentStep" class="flex-1 flex flex-col overflow-hidden hidden">
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div class="bg-slate-50 rounded-2xl p-4 border shadow-sm">
+                        <div class="mb-4"><span class="text-[10px] font-black uppercase">Payment Method</span><div class="flex gap-2 mt-1"><button onclick="setPaymentMethod('Cash')" id="payCash" class="flex-1 py-2 rounded-lg text-[10px] font-extrabold border-2 border-blue-600 bg-blue-50 text-blue-700">Cash</button><button onclick="setPaymentMethod('GCash')" id="payGCash" class="flex-1 py-2 rounded-lg text-[10px] font-extrabold border border-slate-200 bg-white text-slate-600">GCash</button><button onclick="setPaymentMethod('Maya')" id="payMaya" class="flex-1 py-2 rounded-lg text-[10px] font-extrabold border border-slate-200 bg-white text-slate-600">Maya</button></div></div>
+                        <div id="qrButtons" class="grid grid-cols-2 gap-2 hidden mb-4"><button onclick="showQR('gcash')" class="bg-blue-50 border p-2 rounded-lg text-[10px] font-bold tap-effect">📱 GCash QR</button><button onclick="showQR('maya')" class="bg-purple-50 border p-2 rounded-lg text-[10px] font-bold tap-effect">💳 Maya QR</button></div>
+                        <div id="ewalletSection" class="hidden mb-4"><input type="number" id="ewalletAmount" placeholder="Amount" class="w-full bg-white border rounded-lg p-2 text-sm font-mono"><p class="text-[8px] text-slate-400 mt-1">Customer scans QR for this amount</p></div>
+                        <div class="mb-4"><span class="text-[10px] font-black uppercase">Discount</span><div class="grid grid-cols-4 gap-1 mt-1"><button onclick="setDiscount('NONE')" id="discNone" class="py-1.5 rounded-lg text-[9px] font-extrabold border-2 border-blue-600 bg-blue-50 text-blue-600">No Disc</button><button onclick="setDiscount('PROMO')" id="discPromo" class="py-1.5 rounded-lg text-[9px] font-extrabold border border-slate-200 bg-white">5%</button><button onclick="setDiscount('REDO')" id="discRedo" class="py-1.5 rounded-lg text-[9px] font-extrabold border border-slate-200 bg-white">10%</button><button onclick="setDiscount('SENIOR')" id="discSenior" class="py-1.5 rounded-lg text-[9px] font-extrabold border border-slate-200 bg-white">20%</button></div></div>
+                        <div class="bg-white p-2 rounded-lg space-y-1 text-xs"><div class="flex justify-between"><span>Subtotal</span><span id="paySubtotal">₱0.00</span></div><div class="flex justify-between text-amber-600"><span>Discount</span><span id="payDiscount">-₱0.00</span></div><div class="flex justify-between font-black text-base"><span>Payable</span><span id="payPayable">₱0.00</span></div></div>
+                        <div id="cashSection"><div class="grid grid-cols-2 gap-2 mt-2"><div class="bg-white border rounded-lg p-2"><span class="text-[8px] uppercase font-bold">Cash</span><input type="number" id="cashInput" oninput="updateChange()" class="bg-transparent w-full font-mono font-bold outline-none text-sm" placeholder="0.00"></div><div class="bg-white border rounded-lg p-2"><span class="text-[8px] uppercase font-bold">Change</span><span id="changeDisplay" class="text-sm font-black text-green-600 block">₱0.00</span></div></div></div>
+                    </div>
+                </div>
+                <div class="p-3 border-t bg-white flex gap-2"><button onclick="backToOrder()" class="flex-1 bg-slate-200 py-2 rounded-lg text-xs font-bold tap-effect">← Back</button><button onclick="completeOrder()" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-black py-2 rounded-lg text-sm uppercase shadow-md tap-effect">Confirm & Pay</button></div>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
-    <div id="qrModal" class="fixed inset-0 z-[150] hidden bg-black/70 backdrop-blur-sm items-center justify-center p-4"><div class="bg-white p-4 rounded-xl max-w-xs w-full text-center"><i class="fa-solid fa-qrcode text-4xl text-blue-600"></i><h3 class="font-black text-sm mt-2">Scan to Pay</h3><img id="qrModalImage" class="w-40 h-40 mx-auto mt-3 object-contain"><button onclick="closeQrModal()" class="mt-3 text-xs bg-slate-100 px-4 py-1.5 rounded-full">Close</button></div></div>
-    <div id="receiptModal" class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-md flex-col items-center justify-center p-4"><div class="bg-white rounded-xl p-4 max-w-xs w-full"><div class="text-center mb-2"><i class="fa-solid fa-circle-check text-4xl text-green-500"></i><h3 class="font-black text-base mt-1">Order Completed</h3></div><div id="receiptContentArea" class="bg-slate-50 p-3 rounded-lg font-mono text-[10px] space-y-1 mb-3"></div><div class="flex gap-2"><button onclick="closeReceipt()" class="flex-1 bg-slate-200 py-2 rounded-lg text-xs font-bold">Close</button><button onclick="printReceipt()" class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-xs font-bold">Print</button></div></div></div>
+    <!-- QR Modal -->
+    <div id="qrModal" class="fixed inset-0 z-[150] hidden bg-black/70 backdrop-blur-sm items-center justify-center p-4"><div class="bg-white p-4 rounded-xl max-w-xs w-full text-center"><i class="fa-solid fa-qrcode text-4xl text-blue-600"></i><h3 class="font-black text-sm mt-2">Scan to Pay</h3><img id="qrModalImg" class="w-40 h-40 mx-auto mt-3 object-contain"><button onclick="closeQRModal()" class="mt-3 text-xs bg-slate-100 px-4 py-1.5 rounded-full">Close</button></div></div>
+
+    <!-- RECEIPT MODAL -->
+    <div id="receiptModal" class="fixed inset-0 z-[100] hidden bg-black/50 backdrop-blur-md flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-xs w-full overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-4 py-3 text-white text-center">
+                <i class="fa-solid fa-check-circle text-2xl mb-1"></i>
+                <h3 class="font-black text-base">Order Completed</h3>
+            </div>
+            <div class="p-4">
+                <div id="receiptContentArea" class="receipt-print-area bg-slate-50 rounded-xl p-3 font-mono text-[11px] space-y-1"></div>
+                <div class="flex gap-2 mt-4">
+                    <button onclick="closeReceipt()" class="flex-1 bg-slate-200 hover:bg-slate-300 py-2 rounded-lg text-xs font-bold transition tap-effect">Close</button>
+                    <button onclick="printReceipt()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-bold transition tap-effect">🖨️ Print</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Firebase Config
+        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyDjBWRnObgHVEuJNmIO6chO6vIJF4LaAeo",
             authDomain: "pos-mobile-60980.firebaseapp.com",
-            databaseURL: "https://pos-mobile-60980-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "pos-mobile-60980",
             storageBucket: "pos-mobile-60980.firebasestorage.app",
             messagingSenderId: "603143400415",
@@ -240,31 +226,29 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const functions = firebase.functions();
 
-        // Global State
+        // Global state
         let products = [], transactions = [], cart = [];
         let activeCategory = "All", currentView = "cashier", adminTab = "analytics";
-        let orderType = "DINE", activeDiscount = "NONE", paymentMethod = "Cash";
+        let orderType = "DINE", discount = "NONE", paymentMethod = "Cash";
         let chart = null, userRole = null, userId = null;
-        let receiptSettings = { storeName: "ArchX Go", address: "Unit 123, City Mall", phone: "(02) 1234 5678", footer: "Thank you!" };
+        let receiptSettings = { storeName: "ArchX Go", address: "Unit 123, City Mall", phone: "(02) 1234 5678", footer: "Thank you! Visit again." };
         let gcashQR = null, mayaQR = null;
         let unsubProducts, unsubTransactions, unsubSettings, unsubQR;
-        let loginAttempts = 0;
 
-        // Helper Functions
+        // Helper functions
         function formatDate(d) { if(!d) return ""; return `${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')} ${d.getHours()%12||12}:${d.getMinutes().toString().padStart(2,'0')} ${d.getHours()>=12?'PM':'AM'}`; }
         function getSubtotal() { return cart.reduce((s,i)=>s+(i.price*i.qty),0); }
-        function getPayable() { const s = getSubtotal(); let d = activeDiscount==="PROMO"?0.05: activeDiscount==="REDO"?0.1: activeDiscount==="SENIOR"?0.2:0; return s - (s*d); }
+        function getPayable() { const s = getSubtotal(); let r = discount==="PROMO"?0.05: discount==="REDO"?0.1: discount==="SENIOR"?0.2:0; return s - (s*r); }
 
-        // Firestore Listeners
+        // Firestore listeners
         function loadProducts() { if(unsubProducts) unsubProducts(); unsubProducts = db.collection('products').onSnapshot(snap => { products = []; snap.forEach(d => products.push({ id: d.id, ...d.data() })); refreshUI(); }); }
         function loadTransactions() { if(unsubTransactions) unsubTransactions(); unsubTransactions = db.collection('transactions').orderBy('date', 'desc').onSnapshot(snap => { transactions = []; snap.forEach(d => transactions.push({ id: d.id, ...d.data() })); refreshUI(); if(currentView==='admin' && adminTab==='analytics') renderAdmin(); if(currentView==='admin' && adminTab==='ledger') renderLedger(); }); }
         function loadSettings() { if(unsubSettings) unsubSettings(); unsubSettings = db.collection('settings').doc('receipt').onSnapshot(d => { if(d.exists) receiptSettings = d.data(); document.getElementById("receiptStoreName").value = receiptSettings.storeName||""; document.getElementById("receiptAddress").value = receiptSettings.address||""; document.getElementById("receiptPhone").value = receiptSettings.phone||""; document.getElementById("receiptFooter").value = receiptSettings.footer||""; }); }
         function loadQR() { if(unsubQR) unsubQR(); unsubQR = db.collection('settings').doc('qr').onSnapshot(d => { if(d.exists) { gcashQR = d.data().gcash||null; mayaQR = d.data().maya||null; } updateQRPreviews(); }); }
-        function updateQRPreviews() { const g = document.getElementById("gcashQrPreview"), m = document.getElementById("mayaQrPreview"); if(gcashQR) g.innerHTML = `<img src="${gcashQR}" class="w-full h-full object-cover">`; else g.innerHTML = `<i class="fa-solid fa-camera text-2xl"></i>`; if(mayaQR) m.innerHTML = `<img src="${mayaQR}" class="w-full h-full object-cover">`; else m.innerHTML = `<i class="fa-solid fa-camera text-2xl"></i>`; }
+        function updateQRPreviews() { const gDiv = document.getElementById("gcashQrPreview"), mDiv = document.getElementById("mayaQrPreview"); if(gcashQR) gDiv.innerHTML = `<img src="${gcashQR}" class="w-full h-full object-cover">`; else gDiv.innerHTML = `<i class="fa-solid fa-camera text-2xl text-slate-300"></i>`; if(mayaQR) mDiv.innerHTML = `<img src="${mayaQR}" class="w-full h-full object-cover">`; else mDiv.innerHTML = `<i class="fa-solid fa-camera text-2xl text-slate-300"></i>`; }
 
-        // Auto-create default admin (silently, no error shown)
+        // Auto-create default admin
         async function ensureAdmin() {
             try {
                 await auth.signInWithEmailAndPassword("admin@test.com", "admin123");
@@ -275,36 +259,19 @@
                         const u = await auth.createUserWithEmailAndPassword("admin@test.com", "admin123");
                         await db.collection('users').doc(u.user.uid).set({ role: "admin" });
                         await auth.signOut();
-                    } catch(createErr) { console.error("Admin creation failed", createErr); }
+                    } catch(e2) { console.error(e2); }
                 }
             }
         }
 
-        // Staff Creation
-        async function createStaffViaFunction() {
-            const email = document.getElementById("staffEmail").value.trim();
-            const pwd = document.getElementById("staffPassword").value;
-            const msg = document.getElementById("staffMsg");
-            if(!email || !pwd || pwd.length<6) { msg.innerText = "Email and password (min 6 chars)"; msg.classList.remove("hidden"); return; }
-            const func = functions.httpsCallable('createStaff');
-            try {
-                await func({ email, password: pwd });
-                msg.innerText = `Staff ${email} created!`; msg.classList.remove("hidden"); msg.classList.add("text-green-600");
-                document.getElementById("staffEmail").value = ""; document.getElementById("staffPassword").value = "";
-                setTimeout(() => msg.classList.add("hidden"), 3000);
-            } catch(err) { msg.innerText = err.message; msg.classList.remove("hidden"); msg.classList.add("text-red-500"); }
-        }
-
-        // Secure Login
-        async function performSecureLogin() {
+        // Login
+        async function performLogin() {
             const email = document.getElementById("loginEmail").value.trim();
             const pwd = document.getElementById("loginPassword").value;
             const errDiv = document.getElementById("loginErrorMsg");
-            if(loginAttempts >= 5) { errDiv.innerText = "Too many attempts. Try again later."; errDiv.classList.remove("hidden"); return; }
-            if(!email || !pwd) { errDiv.innerText = "Please enter email and password"; errDiv.classList.remove("hidden"); return; }
+            if(!email || !pwd) { errDiv.innerText = "Enter email and password"; errDiv.classList.remove("hidden"); setTimeout(()=>errDiv.classList.add("hidden"),3000); return; }
             try {
                 const cred = await auth.signInWithEmailAndPassword(email, pwd);
-                loginAttempts = 0;
                 userId = cred.user.uid;
                 const roleDoc = await db.collection('users').doc(userId).get();
                 if(!roleDoc.exists || !roleDoc.data().role) {
@@ -325,45 +292,49 @@
                         document.getElementById("revenueContainer").style.display = "block";
                     }
                     loadProducts(); loadTransactions(); loadSettings(); loadQR();
-                    refreshUI(); switchUserView("cashier");
+                    refreshUI(); switchView("cashier");
                 }, 300);
             } catch(err) {
-                loginAttempts++;
-                let errorMessage = err.message;
-                if(errorMessage.includes("auth/invalid-credential") || errorMessage.includes("auth/wrong-password") || errorMessage.includes("auth/user-not-found")) {
-                    errorMessage = "Invalid email or password";
-                }
-                errDiv.innerText = errorMessage;
+                let msg = err.message;
+                if(msg.includes("auth/invalid-credential") || msg.includes("auth/wrong-password") || msg.includes("auth/user-not-found")) msg = "Invalid email or password";
+                errDiv.innerText = msg;
                 errDiv.classList.remove("hidden");
+                setTimeout(()=>errDiv.classList.add("hidden"),3000);
             }
         }
-
-        function logout() {
-            auth.signOut().then(() => {
-                if(unsubProducts) unsubProducts(); if(unsubTransactions) unsubTransactions();
-                if(unsubSettings) unsubSettings(); if(unsubQR) unsubQR();
-                document.getElementById("mainApp").classList.add("hidden");
-                document.getElementById("loginScreen").classList.remove("hidden");
-                document.getElementById("loginScreen").style.opacity = "1";
-                document.getElementById("loginEmail").value = "";
-                document.getElementById("loginPassword").value = "";
-                cart = []; refreshCartUI();
-            });
-        }
+        function logout() { auth.signOut().then(() => { window.location.reload(); }); }
 
         // Product Management
-        async function addProductToFirestore() {
+        async function addProduct() {
             if(userRole !== 'admin') { alert("Admin only"); return; }
             const name = document.getElementById("newProductName").value.trim();
             const cat = document.getElementById("newProductCat").value.trim();
             const price = parseFloat(document.getElementById("newProductPrice").value);
             let stock = parseInt(document.getElementById("newProductStock").value);
             if(isNaN(stock)) stock = 0;
-            if(!name || !cat || isNaN(price) || price<=0) { alert("Fill all fields"); return; }
+            if(!name || !cat || isNaN(price) || price<=0) { alert("Fill all fields correctly"); return; }
             await db.collection('products').add({ name, cat, price, stock: Math.max(0,stock) });
-            document.getElementById("newProductName").value = ""; document.getElementById("newProductCat").value = "";
-            document.getElementById("newProductPrice").value = ""; document.getElementById("newProductStock").value = "10";
+            document.getElementById("newProductName").value = "";
+            document.getElementById("newProductCat").value = "";
+            document.getElementById("newProductPrice").value = "";
+            document.getElementById("newProductStock").value = "10";
             alert("Product added");
+        }
+        async function updateProduct(id, field, value) {
+            if(userRole !== 'admin') return;
+            const update = {};
+            if(field === 'name') update.name = value;
+            if(field === 'cat') update.cat = value;
+            if(field === 'price') update.price = parseFloat(value);
+            if(field === 'stock') update.stock = Math.max(0, parseInt(value));
+            await db.collection('products').doc(id).update(update);
+        }
+        async function deleteProduct(id) {
+            if(userRole !== 'admin') return;
+            if(confirm("Delete this product permanently?")) {
+                await db.collection('products').doc(id).delete();
+                alert("Product deleted");
+            }
         }
         async function updateStock(id, delta) {
             if(userRole !== 'admin') return;
@@ -372,27 +343,36 @@
             await ref.update({ stock: Math.max(0, (doc.data().stock||0) + delta) });
         }
 
-        // Cart Functions
+        // Cart functions
         function addToCart(id) { const p = products.find(p=>p.id===id); if(!p || p.stock<=0) return; const existing = cart.find(c=>c.id===id); if(existing) { if(existing.qty+1 > p.stock) { alert(`Only ${p.stock} left`); return; } existing.qty++; } else cart.push({ id, name: p.name, price: p.price, qty:1, notes:"" }); refreshCartUI(); }
         function adjustQty(id, delta) { const idx = cart.findIndex(c=>c.id===id); if(idx===-1) return; const p = products.find(p=>p.id===id); const nq = cart[idx].qty + delta; if(nq <= 0) cart.splice(idx,1); else if(p && nq > p.stock) { alert(`Max ${p.stock}`); return; } else cart[idx].qty = nq; refreshCartUI(); renderCartStep1(); }
-        function refreshCartUI() { const q = cart.reduce((a,c)=>a+c.qty,0); const a = cart.reduce((a,c)=>a+(c.price*c.qty),0); const rev = transactions.reduce((a,t)=>a+t.total,0); document.getElementById("cartItemCount").innerText = q; document.getElementById("cartTotalAmount").innerText = `₱${a.toFixed(2)}`; document.getElementById("totalRevenueDisplay").innerText = `₱${rev.toFixed(2)}`; document.getElementById("checkoutTriggerBtn").disabled = q === 0; updateChange(); if(document.getElementById("orderTotalQty")) document.getElementById("orderTotalQty").innerText = q; if(document.getElementById("orderSubtotal")) document.getElementById("orderSubtotal").innerText = `₱${a.toFixed(2)}`; }
-        function clearCart() { cart = []; refreshCartUI(); closeCheckoutDrawer(); }
+        function refreshCartUI() { const q = cart.reduce((a,c)=>a+c.qty,0); const a = cart.reduce((a,c)=>a+(c.price*c.qty),0); const rev = transactions.reduce((a,t)=>a+t.total,0); document.getElementById("cartItemCount").innerText = q; document.getElementById("cartTotalAmount").innerText = `₱${a.toFixed(2)}`; document.getElementById("totalRevenueDisplay").innerText = `₱${rev.toFixed(2)}`; document.getElementById("checkoutTriggerBtn").disabled = q === 0; updateChange(); if(document.getElementById("stepTotalQty")) document.getElementById("stepTotalQty").innerText = q; if(document.getElementById("stepSubtotal")) document.getElementById("stepSubtotal").innerText = `₱${a.toFixed(2)}`; }
+        function clearCart() { cart = []; refreshCartUI(); closeCheckout(); }
         function assignNote(id, val) { const item = cart.find(c=>c.id===id); if(item) item.notes = val; }
 
         // Payment UI
-        function selectPaymentMethod(method) { paymentMethod = method; ["Cash","GCash","Maya"].forEach(m => { const btn = document.getElementById(`method${m}`); if(btn) btn.className = m===method ? "flex-1 py-2 rounded-lg text-[10px] font-extrabold border-2 border-blue-600 bg-blue-50 text-blue-700" : "flex-1 py-2 rounded-lg text-[10px] font-extrabold border border-slate-200 bg-white text-slate-600"; }); const qrDiv = document.getElementById("digitalQrButtons"), cashDiv = document.getElementById("cashPaymentSection"), eDiv = document.getElementById("ewalletAmountSection"); if(method === "GCash" || method === "Maya") { qrDiv.classList.remove("hidden"); cashDiv.classList.add("hidden"); eDiv.classList.remove("hidden"); document.getElementById("ewalletAmountInput").value = getPayable().toFixed(2); document.getElementById("cashReceivedInput").value = ""; updateChange(); } else { qrDiv.classList.add("hidden"); cashDiv.classList.remove("hidden"); eDiv.classList.add("hidden"); updateChange(); } }
-        function applyDiscount(disc) { activeDiscount = disc; updateChange(); if(paymentMethod !== "Cash") document.getElementById("ewalletAmountInput").value = getPayable().toFixed(2); }
-        function updateChange() { const s = getSubtotal(); let dr = activeDiscount==="PROMO"?0.05: activeDiscount==="REDO"?0.1: activeDiscount==="SENIOR"?0.2:0; const pay = s - (s*dr); const cash = parseFloat(document.getElementById("cashReceivedInput")?.value) || 0; document.getElementById("checkoutSubtotal").innerText = `₱${s.toFixed(2)}`; document.getElementById("checkoutDiscountAmount").innerText = `-₱${(s*dr).toFixed(2)}`; document.getElementById("checkoutPayable").innerText = `₱${pay.toFixed(2)}`; if(document.getElementById("changeDueDisplay")) document.getElementById("changeDueDisplay").innerText = `₱${Math.max(0, cash-pay).toFixed(2)}`; if(paymentMethod !== "Cash") document.getElementById("ewalletAmountInput").value = pay.toFixed(2); }
-        function setOrderDiningType(type) { orderType = type; document.getElementById("dineTypeBtn").className = type==="DINE"?"text-[9px] font-bold px-3 py-1 rounded-full bg-blue-600 text-white":"text-[9px] font-bold px-3 py-1 rounded-full bg-white border text-slate-600"; document.getElementById("takeTypeBtn").className = type==="TAKE"?"text-[9px] font-bold px-3 py-1 rounded-full bg-blue-600 text-white":"text-[9px] font-bold px-3 py-1 rounded-full bg-white border text-slate-600"; }
+        function setPaymentMethod(method) { paymentMethod = method; ["Cash","GCash","Maya"].forEach(m => { const btn = document.getElementById(`pay${m}`); if(btn) btn.className = m===method ? "flex-1 py-2 rounded-lg text-[10px] font-extrabold border-2 border-blue-600 bg-blue-50 text-blue-700" : "flex-1 py-2 rounded-lg text-[10px] font-extrabold border border-slate-200 bg-white text-slate-600"; }); const qrDiv = document.getElementById("qrButtons"), cashDiv = document.getElementById("cashSection"), eDiv = document.getElementById("ewalletSection"); if(method === "GCash" || method === "Maya") { qrDiv.classList.remove("hidden"); cashDiv.classList.add("hidden"); eDiv.classList.remove("hidden"); document.getElementById("ewalletAmount").value = getPayable().toFixed(2); document.getElementById("cashInput").value = ""; updateChange(); } else { qrDiv.classList.add("hidden"); cashDiv.classList.remove("hidden"); eDiv.classList.add("hidden"); updateChange(); } }
+        function setDiscount(d) { discount = d; ["NONE","PROMO","REDO","SENIOR"].forEach(dc => { const btn = document.getElementById(`disc${dc}`); if(btn) btn.className = dc===d ? "py-1.5 rounded-lg text-[9px] font-extrabold border-2 border-blue-600 bg-blue-50 text-blue-600" : "py-1.5 rounded-lg text-[9px] font-extrabold border border-slate-200 bg-white"; }); updateChange(); if(paymentMethod !== "Cash") document.getElementById("ewalletAmount").value = getPayable().toFixed(2); }
+        function updateChange() { const s = getSubtotal(); let r = discount==="PROMO"?0.05: discount==="REDO"?0.1: discount==="SENIOR"?0.2:0; const pay = s - (s*r); const cash = parseFloat(document.getElementById("cashInput")?.value) || 0; document.getElementById("paySubtotal").innerText = `₱${s.toFixed(2)}`; document.getElementById("payDiscount").innerText = `-₱${(s*r).toFixed(2)}`; document.getElementById("payPayable").innerText = `₱${pay.toFixed(2)}`; document.getElementById("changeDisplay").innerText = `₱${Math.max(0, cash-pay).toFixed(2)}`; if(paymentMethod !== "Cash") document.getElementById("ewalletAmount").value = pay.toFixed(2); }
+        function setOrderType(type) { orderType = type; document.getElementById("dineBtn").className = type==="DINE"?"text-[9px] font-bold px-3 py-1 rounded-full bg-blue-600 text-white":"text-[9px] font-bold px-3 py-1 rounded-full bg-white border text-slate-600"; document.getElementById("takeBtn").className = type==="TAKE"?"text-[9px] font-bold px-3 py-1 rounded-full bg-blue-600 text-white":"text-[9px] font-bold px-3 py-1 rounded-full bg-white border text-slate-600"; }
 
-        // Transaction Commit
-        async function commitTransactionToFirestore() {
+        // Step navigation
+        function goToPayment() { document.getElementById("orderStep").classList.add("hidden"); document.getElementById("paymentStep").classList.remove("hidden"); }
+        function backToOrder() { document.getElementById("paymentStep").classList.add("hidden"); document.getElementById("orderStep").classList.remove("hidden"); renderCartStep1(); }
+
+        // Checkout drawer
+        function openCheckout() { if(cart.length===0) return; renderCartStep1(); setOrderType(orderType); setDiscount(discount); setPaymentMethod(paymentMethod); document.getElementById("orderStep").classList.remove("hidden"); document.getElementById("paymentStep").classList.add("hidden"); document.getElementById("checkoutSheet").classList.remove("pointer-events-none"); document.getElementById("sheetBackdrop").classList.replace("opacity-0","opacity-100"); document.getElementById("sheetPanel").classList.add("open"); }
+        function closeCheckout() { document.getElementById("sheetBackdrop").classList.replace("opacity-100","opacity-0"); document.getElementById("sheetPanel").classList.remove("open"); setTimeout(()=>document.getElementById("checkoutSheet").classList.add("pointer-events-none"),300); }
+        function renderCartStep1() { const container = document.getElementById("cartItemsList"); if(!cart.length) { closeCheckout(); return; } container.innerHTML = cart.map(i => `<div class="bg-white p-2 rounded-xl border"><div class="flex justify-between"><div><h5 class="font-bold text-sm">${i.name}</h5><p class="text-[10px] font-mono text-blue-600">₱${(i.price*i.qty).toFixed(2)}</p></div><div class="flex gap-2 bg-slate-100 rounded-lg px-2 py-1"><button onclick="adjustQty('${i.id}',-1)" class="w-6 h-6 flex items-center justify-center rounded-full bg-white shadow">-</button><span class="font-mono w-6 text-center font-bold">${i.qty}</span><button onclick="adjustQty('${i.id}',1)" class="w-6 h-6 flex items-center justify-center rounded-full bg-white shadow">+</button></div></div><input type="text" value="${i.notes||''}" onchange="assignNote('${i.id}',this.value)" placeholder="Notes..." class="w-full mt-1 bg-slate-50 border text-[9px] rounded-lg px-2 py-1"></div>`).join(''); const q = cart.reduce((a,c)=>a+c.qty,0); const a = cart.reduce((a,c)=>a+(c.price*c.qty),0); document.getElementById("stepTotalQty").innerText = q; document.getElementById("stepSubtotal").innerText = `₱${a.toFixed(2)}`; }
+
+        // Complete order with receipt
+        async function completeOrder() {
             if(cart.length===0) return;
             const sub = getSubtotal();
-            let dr = activeDiscount==="PROMO"?0.05: activeDiscount==="REDO"?0.1: activeDiscount==="SENIOR"?0.2:0;
-            const net = sub - (sub*dr);
+            let r = discount==="PROMO"?0.05: discount==="REDO"?0.1: discount==="SENIOR"?0.2:0;
+            const net = sub - (sub*r);
             let cashPaid = 0;
-            if(paymentMethod === "Cash") { cashPaid = parseFloat(document.getElementById("cashReceivedInput").value) || 0; if(cashPaid < net) { alert("Insufficient cash"); return; } } else { cashPaid = parseFloat(document.getElementById("ewalletAmountInput").value) || 0; if(cashPaid < net) { alert(`Amount (₱${cashPaid}) less than payable`); return; } }
+            if(paymentMethod === "Cash") { cashPaid = parseFloat(document.getElementById("cashInput").value) || 0; if(cashPaid < net) { alert("Insufficient cash"); return; } } else { cashPaid = parseFloat(document.getElementById("ewalletAmount").value) || 0; if(cashPaid < net) { alert(`Amount ₱${cashPaid} less than payable ₱${net}`); return; } }
             for(let item of cart) { const p = products.find(p=>p.id===item.id); if(!p || p.stock < item.qty) { alert(`Not enough ${item.name}`); return; } }
             for(let item of cart) { const ref = db.collection('products').doc(item.id); const doc = await ref.get(); await ref.update({ stock: doc.data().stock - item.qty }); }
             const txId = `TX-${Math.floor(1000+Math.random()*9000)}`;
@@ -400,22 +380,101 @@
             await db.collection('transactions').add({
                 id: txId, timestamp: now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), date: firebase.firestore.Timestamp.fromDate(now),
                 type: orderType, items: cart.map(i=>({ name: i.name, qty: i.qty, price: i.price })),
-                total: net, discount: activeDiscount, payment: paymentMethod, cashTendered: cashPaid, userId
+                total: net, discount: discount, payment: paymentMethod, cashTendered: cashPaid, userId: userId
             });
-            const itemsHtml = cart.map(i => `<div class="flex justify-between"><span>${i.name} x${i.qty}</span><span>₱${(i.price*i.qty).toFixed(2)}</span></div>`).join('');
-            const receiptHTML = `<div class="text-center font-bold border-b pb-1">${receiptSettings.storeName}</div><div class="text-center text-[8px]">${receiptSettings.address}</div><div class="text-center text-[8px]">${receiptSettings.phone}</div><div class="border-b my-1"></div><div>ID: ${txId}</div><div>${formatDate(now)}</div><div>${orderType==="DINE"?"Dine In":"Take Out"} | ${paymentMethod}</div><div class="border-b my-1"></div>${itemsHtml}<div class="border-t my-1"></div><div>Subtotal: ₱${sub.toFixed(2)}</div><div>Discount: -₱${(sub*dr).toFixed(2)}</div><div class="font-bold">TOTAL: ₱${net.toFixed(2)}</div><div>Paid: ₱${cashPaid.toFixed(2)}</div><div>Change: ₱${paymentMethod==="Cash"?(cashPaid-net).toFixed(2):"0.00"}</div><div class="text-center text-[8px] border-t mt-1 pt-1">${receiptSettings.footer}</div>`;
+            const itemsHtml = cart.map(i => `<div class="flex justify-between"><span>${i.name} x${i.qty}</span><span class="font-mono">₱${(i.price*i.qty).toFixed(2)}</span></div>`).join('');
+            const receiptHTML = `
+                <div class="text-center border-b border-blue-200 pb-2 mb-2">
+                    <div class="font-bold text-blue-800 text-sm">${receiptSettings.storeName}</div>
+                    <div class="text-[9px] text-slate-500">${receiptSettings.address}</div>
+                    <div class="text-[9px] text-slate-500">${receiptSettings.phone}</div>
+                </div>
+                <div class="text-[9px] space-y-1">
+                    <div class="flex justify-between"><span>Order ID:</span><span class="font-mono font-bold">${txId}</span></div>
+                    <div class="flex justify-between"><span>Date:</span><span class="font-mono">${formatDate(now)}</span></div>
+                    <div class="flex justify-between"><span>Type:</span><span>${orderType==="DINE"?"Dine In":"Take Out"}</span></div>
+                    <div class="flex justify-between"><span>Payment:</span><span>${paymentMethod}</span></div>
+                </div>
+                <div class="border-t border-dashed border-slate-300 my-2"></div>
+                <div class="text-[10px] space-y-1">${itemsHtml}</div>
+                <div class="border-t border-dashed border-slate-300 my-2"></div>
+                <div class="text-[9px] space-y-1">
+                    <div class="flex justify-between"><span>Subtotal</span><span class="font-mono">₱${sub.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Discount</span><span class="font-mono text-red-500">-₱${(sub*r).toFixed(2)}</span></div>
+                    <div class="flex justify-between font-bold text-blue-700 pt-1"><span>TOTAL</span><span class="font-mono text-base">₱${net.toFixed(2)}</span></div>
+                    <div class="flex justify-between"><span>Paid</span><span class="font-mono">₱${cashPaid.toFixed(2)}</span></div>
+                    <div class="flex justify-between text-green-600"><span>Change</span><span class="font-mono">₱${paymentMethod==="Cash"?(cashPaid-net).toFixed(2):"0.00"}</span></div>
+                </div>
+                <div class="text-center text-[8px] text-slate-400 border-t border-dashed border-slate-300 mt-2 pt-2">${receiptSettings.footer}</div>
+            `;
             document.getElementById("receiptContentArea").innerHTML = receiptHTML;
-            closeCheckoutDrawer(); document.getElementById("receiptModal").style.display = "flex";
-            cart = []; activeDiscount = "NONE"; document.getElementById("cashReceivedInput").value = ""; selectPaymentMethod("Cash"); refreshUI();
+            closeCheckout();
+            document.getElementById("receiptModal").style.display = "flex";
+            cart = []; discount = "NONE"; document.getElementById("cashInput").value = ""; setPaymentMethod("Cash"); refreshUI();
+        }
+        function closeReceipt() { document.getElementById("receiptModal").style.display = "none"; refreshUI(); }
+        function printReceipt() {
+            const printContent = document.getElementById("receiptContentArea").innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head><title>Receipt - ArchX Go</title>
+                <style>
+                    body { font-family: 'Inter', 'JetBrains Mono', monospace; margin: 0; padding: 20px; background: white; }
+                    .receipt { max-width: 300px; margin: 0 auto; background: white; border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+                    .text-center { text-align: center; }
+                    .flex { display: flex; justify-content: space-between; }
+                    .font-bold { font-weight: 700; }
+                    .font-mono { font-family: 'JetBrains Mono', monospace; }
+                    .border-b { border-bottom: 1px solid #e2e8f0; }
+                    .border-t { border-top: 1px solid #e2e8f0; }
+                    .border-dashed { border-style: dashed; }
+                    .text-blue-800 { color: #1e40af; }
+                    .text-slate-500 { color: #64748b; }
+                    .text-red-500 { color: #ef4444; }
+                    .text-green-600 { color: #16a34a; }
+                    .text-blue-700 { color: #1d4ed8; }
+                    .pt-1 { padding-top: 0.25rem; }
+                    .pt-2 { padding-top: 0.5rem; }
+                    .pb-1 { padding-bottom: 0.25rem; }
+                    .pb-2 { padding-bottom: 0.5rem; }
+                    .mb-2 { margin-bottom: 0.5rem; }
+                    .mt-2 { margin-top: 0.5rem; }
+                    .my-2 { margin-top: 0.5rem; margin-bottom: 0.5rem; }
+                    .space-y-1 > * + * { margin-top: 0.25rem; }
+                </style>
+                </head>
+                <body><div class="receipt">${printContent}</div></body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+            printWindow.close();
+        }
+        function showQR(type) { const src = type === "gcash" ? gcashQR : mayaQR; if(!src) { alert("No QR code uploaded"); return; } document.getElementById("qrModalImg").src = src; document.getElementById("qrModal").style.display = "flex"; }
+        function closeQRModal() { document.getElementById("qrModal").style.display = "none"; }
+        async function saveReceiptSettings() { if(userRole !== 'admin') return; await db.collection('settings').doc('receipt').set({ storeName: document.getElementById("receiptStoreName").value, address: document.getElementById("receiptAddress").value, phone: document.getElementById("receiptPhone").value, footer: document.getElementById("receiptFooter").value }); alert("Receipt settings saved"); }
+        async function saveQRCodes() { if(userRole !== 'admin') return; const g = document.getElementById("gcashQrUpload").files[0], m = document.getElementById("mayaQrUpload").files[0]; if(g) { const r = new FileReader(); r.onload = async e => { await db.collection('settings').doc('qr').set({ gcash: e.target.result, maya: mayaQR || "" }, { merge: true }); loadQR(); alert("GCash QR saved"); }; r.readAsDataURL(g); } if(m) { const r = new FileReader(); r.onload = async e => { await db.collection('settings').doc('qr').set({ maya: e.target.result, gcash: gcashQR || "" }, { merge: true }); loadQR(); alert("Maya QR saved"); }; r.readAsDataURL(m); } if(!g && !m) alert("Select a file"); }
+
+        // NEW FUNCTION: Delete Transaction
+        async function deleteTransaction(transactionId, firestoreId) {
+            if(!confirm(`Are you sure you want to delete transaction ${transactionId}? This action cannot be undone.`)) return;
+            try {
+                await db.collection('transactions').doc(firestoreId).delete();
+                alert("Transaction deleted successfully.");
+                // No need to refresh manually because onSnapshot will update
+            } catch(err) {
+                alert("Error deleting transaction: " + err.message);
+            }
         }
 
-        // UI Rendering
+        // UI Rendering (Cashier)
         function refreshUI() { renderCategories(); renderProducts(); refreshCartUI(); }
         function renderCategories() { const cats = ["All", ...new Set(products.map(p=>p.cat))]; document.getElementById("categoryStrip").innerHTML = cats.map(c => `<button onclick="setCategory('${c}')" class="px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap tap-effect ${activeCategory===c?'bg-blue-600 text-white shadow-sm':'bg-white border text-slate-700'}">${c}</button>`).join(''); }
         function setCategory(c) { activeCategory = c; renderCategories(); renderProducts(); }
         function renderProducts() { const f = products.filter(p => activeCategory==="All" || p.cat===activeCategory); const grid = document.getElementById("productCatalog"); if(!f.length) { grid.innerHTML = '<div class="col-span-2 text-center text-slate-400 text-[10px] py-8">No products. Add in Manager.</div>'; return; } grid.innerHTML = f.map(p => `<button onclick="${p.stock>0?`addToCart('${p.id}')`:''}" ${p.stock<=0?'disabled':''} class="product-card bg-white border rounded-xl p-3 flex flex-col justify-between h-28 tap-effect ${p.stock<=0?'opacity-50':''}"><div><span class="text-[8px] font-bold uppercase text-slate-400">${p.cat}</span><h4 class="font-bold text-xs mt-0.5">${p.name}</h4></div><div class="flex justify-between items-end"><span class="font-mono font-bold text-blue-600 text-sm">₱${p.price.toFixed(2)}</span>${p.stock>0?`<span class="text-[8px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">${p.stock}</span>`:'<span class="text-[8px] text-red-500">Out</span>'}</div></button>`).join(''); }
 
-        // Admin & Checkout
+        // Admin panels (including ledger with delete button)
         function renderAdmin() {
             if(adminTab === "analytics") {
                 const today = new Date(); let d=0,w=0,m=0,y=0;
@@ -427,28 +486,55 @@
                 if(transactions.length===0) { ph.classList.remove("hidden"); if(chart) chart.destroy(); return; }
                 ph.classList.add("hidden"); if(chart) chart.destroy();
                 chart = new Chart(ctx, { type:"line", data:{ labels:transactions.map(t=>t.timestamp), datasets:[{ data:transactions.map(t=>t.total), borderColor:"#2563EB", borderWidth:2, fill:true, tension:0.3 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} } });
-            } else if(adminTab === "inventory") { const div = document.getElementById("stockManagerList"); if(!products.length) div.innerHTML = "<p class='text-xs italic'>No products</p>"; else div.innerHTML = products.map(p => `<div class="flex justify-between items-center bg-slate-50 p-2 rounded-lg"><div><h5 class="text-xs font-bold">${p.name}</h5><p class="text-[9px] text-slate-400">₱${p.price} | ${p.cat}</p></div><div class="flex items-center gap-2"><button onclick="updateStock('${p.id}', -1)" class="text-red-500 px-2 py-0.5 bg-white rounded-full shadow">-</button><span class="font-mono w-8 text-center font-bold text-sm">${p.stock}</span><button onclick="updateStock('${p.id}', 1)" class="text-green-600 px-2 py-0.5 bg-white rounded-full shadow">+</button></div></div>`).join(''); }
-            else if(adminTab === "ledger") renderLedger();
+            } else if(adminTab === "inventory") {
+                const div = document.getElementById("stockManagerList");
+                if(!products.length) { div.innerHTML = "<p class='text-xs italic text-center py-4'>No products. Add one above.</p>"; return; }
+                div.innerHTML = products.map(p => `
+                    <div class="bg-white border rounded-lg p-2 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <div class="flex-1">
+                                <input type="text" value="${p.name}" onchange="updateProduct('${p.id}', 'name', this.value)" class="font-bold text-sm bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 outline-none w-full">
+                                <input type="text" value="${p.cat}" onchange="updateProduct('${p.id}', 'cat', this.value)" class="text-[10px] text-slate-500 bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 outline-none w-24">
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="deleteProduct('${p.id}')" class="bg-red-500 text-white px-2 py-1 rounded-lg text-[9px] font-bold tap-effect">Delete</button>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-bold">₱</span>
+                                <input type="number" value="${p.price}" onchange="updateProduct('${p.id}', 'price', this.value)" class="text-xs font-mono w-20 bg-slate-50 rounded px-1 py-0.5">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="updateStock('${p.id}', -1)" class="text-red-500 px-2 py-0.5 bg-white rounded-full shadow text-xs">-</button>
+                                <input type="number" value="${p.stock}" onchange="updateProduct('${p.id}', 'stock', this.value)" class="w-12 text-center text-xs font-mono bg-slate-50 rounded">
+                                <button onclick="updateStock('${p.id}', 1)" class="text-green-600 px-2 py-0.5 bg-white rounded-full shadow text-xs">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else if(adminTab === "ledger") { renderLedger(); }
             else if(adminTab === "qr") updateQRPreviews();
         }
-        function renderLedger() { const div = document.getElementById("ledgerRecords"); if(!transactions.length) div.innerHTML = "<p class='text-center text-xs'>No records</p>"; else div.innerHTML = transactions.map(log => `<div class="bg-white border p-2 rounded-lg text-[10px]"><div class="flex justify-between"><span class="font-bold">${log.id}</span><span>₱${log.total.toFixed(2)}</span></div><div class="text-slate-400">${formatDate(log.date.toDate())} | ${log.type} | ${log.payment}</div><div class="mt-1 text-[9px]">${log.items.map(i=>`${i.name} x${i.qty}`).join(', ')}</div></div>`).join(''); }
-        function exportLedgerData() { if(!transactions.length) { alert("No data"); return; } const flat = []; transactions.forEach(tx => { const dt = formatDate(tx.date.toDate()); tx.items.forEach(item => { flat.push({ "Order ID": tx.id, "Date": dt, "Type": tx.type, "Payment": tx.payment, "Product": item.name, "Qty": item.qty, "Price": item.price, "Line Total": item.qty*item.price, "Discount": tx.discount, "Net": tx.total }); }); }); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(flat), "Sales"); XLSX.writeFile(wb, `ArchXGo_${new Date().toISOString().split('T')[0]}.xlsx`); }
-        function renderCartStep1() { const container = document.getElementById("cartItemsListStep1"); if(!cart.length) { closeCheckoutDrawer(); return; } container.innerHTML = cart.map(i => `<div class="bg-white p-2 rounded-xl border"><div class="flex justify-between"><div><h5 class="font-bold text-sm">${i.name}</h5><p class="text-[10px] font-mono text-blue-600">₱${(i.price*i.qty).toFixed(2)}</p></div><div class="flex gap-2 bg-slate-100 rounded-lg px-2 py-1"><button onclick="adjustQty('${i.id}',-1)" class="w-6 h-6 flex items-center justify-center rounded-full bg-white shadow">-</button><span class="font-mono w-6 text-center font-bold">${i.qty}</span><button onclick="adjustQty('${i.id}',1)" class="w-6 h-6 flex items-center justify-center rounded-full bg-white shadow">+</button></div></div><input type="text" value="${i.notes||''}" onchange="assignNote('${i.id}',this.value)" placeholder="Notes..." class="w-full mt-1 bg-slate-50 border text-[9px] rounded-lg px-2 py-1"></div>`).join(''); }
-        function goToPaymentStep() { document.getElementById("stepOrderCard").style.display = "none"; document.getElementById("stepPaymentCard").style.display = "flex"; }
-        function goBackToOrder() { document.getElementById("stepPaymentCard").style.display = "none"; document.getElementById("stepOrderCard").style.display = "flex"; renderCartStep1(); }
-        function openCheckoutDrawer() { if(cart.length===0) return; renderCartStep1(); setOrderDiningType(orderType); applyDiscount(activeDiscount); selectPaymentMethod(paymentMethod); document.getElementById("stepOrderCard").style.display = "flex"; document.getElementById("stepPaymentCard").style.display = "none"; document.getElementById("checkoutDrawer").classList.remove("pointer-events-none"); document.getElementById("drawerBackdrop").classList.replace("opacity-0","opacity-100"); document.getElementById("drawerPanel").classList.add("open"); }
-        function closeCheckoutDrawer() { document.getElementById("drawerBackdrop").classList.replace("opacity-100","opacity-0"); document.getElementById("drawerPanel").classList.remove("open"); setTimeout(()=>document.getElementById("checkoutDrawer").classList.add("pointer-events-none"),300); }
-        function closeReceipt() { document.getElementById("receiptModal").style.display = "none"; refreshUI(); }
-        function printReceipt() { window.print(); }
-        async function updateCredentials() { alert("Re-authentication required. Implement in production."); }
-        function showQrModal(type) { const src = type === "gcash" ? gcashQR : mayaQR; if(!src) { alert("No QR code uploaded"); return; } document.getElementById("qrModalImage").src = src; document.getElementById("qrModal").style.display = "flex"; }
-        function closeQrModal() { document.getElementById("qrModal").style.display = "none"; }
-        async function saveReceiptSettingsToFirestore() { if(userRole !== 'admin') return; await db.collection('settings').doc('receipt').set({ storeName: document.getElementById("receiptStoreName").value, address: document.getElementById("receiptAddress").value, phone: document.getElementById("receiptPhone").value, footer: document.getElementById("receiptFooter").value }); alert("Saved"); }
-        async function saveQrCodesToFirestore() { if(userRole !== 'admin') return; const g = document.getElementById("gcashQrUpload").files[0], m = document.getElementById("mayaQrUpload").files[0]; if(g) { const r = new FileReader(); r.onload = async e => { await db.collection('settings').doc('qr').set({ gcash: e.target.result, maya: mayaQR || "" }, { merge: true }); loadQR(); }; r.readAsDataURL(g); } if(m) { const r = new FileReader(); r.onload = async e => { await db.collection('settings').doc('qr').set({ maya: e.target.result, gcash: gcashQR || "" }, { merge: true }); loadQR(); }; r.readAsDataURL(m); } if(!g && !m) alert("Select a file"); else alert("Uploading..."); }
-        function switchUserView(view) { if(view==="admin" && userRole!=="admin") { alert("Admin only"); return; } currentView = view; const c = document.getElementById("cashierPanel"), a = document.getElementById("adminPanel"), s = document.getElementById("stickyCartButton"); if(view==="cashier") { c.classList.remove("hidden"); a.classList.add("hidden"); s.classList.remove("hidden"); document.getElementById("navCashierBtn").classList.add("text-blue-600"); if(userRole==="admin") document.getElementById("navAdminBtn").classList.remove("text-blue-600"); document.getElementById("roleName").innerText = "Product Counter"; document.getElementById("roleIcon").innerHTML = '<i class="fa-solid fa-box-open"></i>'; } else { c.classList.add("hidden"); a.classList.remove("hidden"); s.classList.add("hidden"); document.getElementById("navCashierBtn").classList.remove("text-blue-600"); document.getElementById("navAdminBtn").classList.add("text-blue-600"); document.getElementById("roleName").innerText = "Manager"; document.getElementById("roleIcon").innerHTML = '<i class="fa-solid fa-chart-line"></i>'; renderAdmin(); } }
-        function switchAdminTab(tab) { adminTab = tab; ["analytics","inventory","qr","receipt","account","staff","ledger"].forEach(t => { document.getElementById(`${t}Content`).classList.toggle("hidden", t !== tab); document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).className = t === tab ? "px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap bg-blue-600 text-white" : "px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap text-slate-600"; }); renderAdmin(); }
+        function renderLedger() { 
+            const div = document.getElementById("ledgerRecords"); 
+            if(!transactions.length) { div.innerHTML = "<p class='text-center text-xs'>No records</p>"; return; } 
+            div.innerHTML = transactions.map(log => `
+                <div class="bg-white border p-2 rounded-lg text-[10px] flex justify-between items-center">
+                    <div class="flex-1">
+                        <div class="flex justify-between"><span class="font-bold">${log.id}</span><span>₱${log.total.toFixed(2)}</span></div>
+                        <div class="text-slate-400">${formatDate(log.date.toDate())} | ${log.type} | ${log.payment}</div>
+                        <div class="mt-1 text-[9px]">${log.items.map(i=>`${i.name} x${i.qty}`).join(', ')}</div>
+                    </div>
+                    <button onclick="deleteTransaction('${log.id}', '${log.firestoreId}')" class="ml-2 bg-red-500 text-white px-2 py-1 rounded-lg text-[9px] font-bold tap-effect">Delete</button>
+                </div>
+            `).join(''); 
+        }
+        function exportLedger() { if(!transactions.length) { alert("No data to export"); return; } const flat = []; transactions.forEach(tx => { const dt = formatDate(tx.date.toDate()); tx.items.forEach(item => { flat.push({ "Order ID": tx.id, "Date": dt, "Type": tx.type, "Payment": tx.payment, "Product": item.name, "Qty": item.qty, "Price": item.price, "Line Total": item.qty*item.price, "Discount": tx.discount, "Net": tx.total }); }); }); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(flat), "Sales"); XLSX.writeFile(wb, `ArchXGo_${new Date().toISOString().split('T')[0]}.xlsx`); }
+        function switchView(view) { if(view==="admin" && userRole!=="admin") { alert("Admin only"); return; } currentView = view; const cashier = document.getElementById("cashierPanel"), admin = document.getElementById("adminPanel"), sticky = document.getElementById("stickyCartButton"); if(view==="cashier") { cashier.classList.remove("hidden"); admin.classList.add("hidden"); sticky.classList.remove("hidden"); document.getElementById("navCashierBtn").classList.add("text-blue-600"); if(userRole==="admin") document.getElementById("navAdminBtn").classList.remove("text-blue-600"); document.getElementById("roleName").innerText = "Product Counter"; document.getElementById("roleIcon").innerHTML = '<i class="fa-solid fa-box-open"></i>'; } else { cashier.classList.add("hidden"); admin.classList.remove("hidden"); sticky.classList.add("hidden"); document.getElementById("navCashierBtn").classList.remove("text-blue-600"); document.getElementById("navAdminBtn").classList.add("text-blue-600"); document.getElementById("roleName").innerText = "Manager"; document.getElementById("roleIcon").innerHTML = '<i class="fa-solid fa-chart-line"></i>'; renderAdmin(); } }
+        function switchAdminTab(tab) { adminTab = tab; ["analytics","inventory","qr","receipt","ledger"].forEach(t => { document.getElementById(`${t}Content`).classList.toggle("hidden", t !== tab); document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).className = t === tab ? "px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap bg-blue-600 text-white" : "px-3 py-1.5 text-[10px] font-bold rounded-lg whitespace-nowrap text-slate-600"; }); renderAdmin(); }
 
-        window.onload = async () => { await ensureAdmin(); selectPaymentMethod("Cash"); };
+        window.onload = async () => { await ensureAdmin(); setPaymentMethod("Cash"); };
     </script>
 </body>
 </html>
