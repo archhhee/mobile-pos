@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>ArchX Go | Mobile POS</title>
+    <title>ArchX Go</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -51,9 +51,8 @@
             .receipt-print-area, .receipt-print-area * { visibility: visible; }
             .receipt-print-area { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; background: white; }
         }
-        /* Mobile optimizations */
         input, button, select, textarea {
-            font-size: 16px; /* Prevents zoom on focus in iOS */
+            font-size: 16px;
         }
         .safe-bottom {
             padding-bottom: env(safe-area-inset-bottom);
@@ -62,7 +61,7 @@
 </head>
 <body class="h-[100dvh] flex flex-col overflow-hidden">
 
-    <!-- LOGIN SCREEN (Mobile Optimized) -->
+    <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="fixed inset-0 z-[200] bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-5 transition-all duration-500">
         <div class="w-full max-w-sm">
             <div class="text-center mb-6">
@@ -77,16 +76,12 @@
                 <input type="password" id="loginPassword" class="w-full mt-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-mono tracking-wider focus:outline-none focus:border-blue-500" placeholder="Password">
                 <p id="loginErrorMsg" class="text-xs font-bold text-red-500 hidden text-center bg-red-50 py-2 rounded-xl mt-3"></p>
                 <button onclick="performSecureLogin()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm uppercase tracking-wider shadow-md transition-all tap-effect">Login</button>
-                <div class="mt-4 text-center text-[10px] text-slate-400 border-t pt-3">
-                    Default admin: <span class="font-mono">admin@test.com</span> / <span class="font-mono">admin123</span>
-                </div>
             </div>
         </div>
     </div>
 
     <!-- MAIN APP -->
     <div id="mainApp" class="hidden flex flex-col h-full w-full">
-        <!-- Mobile Header -->
         <header class="bg-white/95 backdrop-blur-sm px-4 py-3 flex justify-between items-center border-b border-slate-200 shadow-sm shrink-0 safe-top">
             <div class="flex items-center gap-2">
                 <div id="roleIcon" class="w-9 h-9 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600"><i class="fa-solid fa-cash-register text-sm"></i></div>
@@ -98,7 +93,6 @@
             </div>
         </header>
 
-        <!-- Main Content -->
         <div class="flex-1 overflow-hidden relative">
             <!-- Cashier View -->
             <section id="cashierPanel" class="absolute inset-0 flex flex-col overflow-hidden">
@@ -106,7 +100,7 @@
                 <div id="productCatalog" class="flex-1 overflow-y-auto p-3 pb-28 grid grid-cols-2 gap-3 content-start"></div>
             </section>
 
-            <!-- Admin View (Optimized for Mobile) -->
+            <!-- Admin View -->
             <section id="adminPanel" class="absolute inset-0 hidden overflow-y-auto pb-24">
                 <div class="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-2 py-2">
                     <div class="flex gap-1 overflow-x-auto no-scrollbar">
@@ -121,7 +115,6 @@
                 </div>
 
                 <div class="p-3 space-y-3">
-                    <!-- Analytics Panel -->
                     <div id="analyticsContent" class="space-y-3">
                         <div class="grid grid-cols-2 gap-2">
                             <div class="bg-white border border-slate-200 p-3 rounded-xl"><span class="text-[9px] uppercase font-black text-slate-500">Daily</span><h3 id="dailySalesKpi" class="text-lg font-black font-mono text-blue-600">₱0.00</h3></div>
@@ -133,7 +126,6 @@
                         <div class="bg-white border border-slate-200 p-3 rounded-xl"><div class="flex justify-between border-b pb-2"><h4 class="text-[10px] font-extrabold uppercase">Recent Orders</h4></div><div id="recentOrdersContainer" class="space-y-2 mt-2"></div></div>
                     </div>
 
-                    <!-- Inventory Panel (Mobile Optimized) -->
                     <div id="inventoryContent" class="hidden space-y-3">
                         <div class="bg-white border border-slate-200 p-3 rounded-xl">
                             <h4 class="text-[10px] font-extrabold uppercase flex items-center gap-2"><i class="fa-solid fa-plus-circle text-blue-600"></i> Add Product</h4>
@@ -148,7 +140,6 @@
                         <div class="bg-white border border-slate-200 p-3 rounded-xl"><h4 class="text-xs font-bold">Stock Control</h4><div id="stockManagerList" class="space-y-2 mt-2 max-h-80 overflow-y-auto"></div></div>
                     </div>
 
-                    <!-- QR Panel -->
                     <div id="qrContent" class="hidden bg-white border border-slate-200 p-3 rounded-xl space-y-3">
                         <h4 class="text-[10px] font-extrabold uppercase">Payment QR Codes</h4>
                         <div><label class="text-[9px] font-bold">GCash QR</label><input type="file" id="gcashQrUpload" accept="image/*" class="w-full text-xs bg-slate-50 p-2 rounded"><div id="gcashQrPreview" class="w-24 h-24 border-2 border-dashed rounded-lg mt-2 flex items-center justify-center bg-slate-50 overflow-hidden"><i class="fa-solid fa-camera text-2xl text-slate-300"></i></div></div>
@@ -156,7 +147,6 @@
                         <button onclick="saveQrCodesToFirestore()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-xs">Save QR</button>
                     </div>
 
-                    <!-- Receipt Panel -->
                     <div id="receiptContent" class="hidden bg-white border border-slate-200 p-3 rounded-xl space-y-3">
                         <h4 class="text-[10px] font-extrabold uppercase">Receipt Layout</h4>
                         <input type="text" id="receiptStoreName" placeholder="Store Name" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
@@ -166,7 +156,6 @@
                         <button onclick="saveReceiptSettingsToFirestore()" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg text-xs">Save Settings</button>
                     </div>
 
-                    <!-- Account Panel -->
                     <div id="accountContent" class="hidden bg-white border border-slate-200 p-3 rounded-xl space-y-3">
                         <h4 class="text-[10px] font-extrabold uppercase">Change Credentials</h4>
                         <input type="email" id="newEmail" placeholder="New Email" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
@@ -176,7 +165,6 @@
                         <p id="accountMsg" class="text-xs text-center hidden"></p>
                     </div>
 
-                    <!-- Staff Panel -->
                     <div id="staffContent" class="hidden bg-white border border-slate-200 p-3 rounded-xl space-y-3">
                         <h4 class="text-[10px] font-extrabold uppercase">Add Staff</h4>
                         <input type="email" id="staffEmail" placeholder="Staff Email" class="w-full bg-slate-50 border rounded-lg px-3 py-2 text-xs">
@@ -186,7 +174,6 @@
                         <div class="text-[9px] text-amber-600 bg-amber-50 p-2 rounded">⚠️ Requires Cloud Function `createStaff`</div>
                     </div>
 
-                    <!-- Ledger Panel -->
                     <div id="ledgerContent" class="hidden space-y-3">
                         <button onclick="exportLedgerData()" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl text-xs">📊 Export Ledger</button>
                         <div id="ledgerRecords" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
@@ -213,7 +200,7 @@
         </nav>
     </div>
 
-    <!-- MOBILE OPTIMIZED CHECKOUT SHEET -->
+    <!-- CHECKOUT SHEET -->
     <div id="checkoutDrawer" class="fixed inset-0 z-50 pointer-events-none flex flex-col justify-end">
         <div id="drawerBackdrop" onclick="closeCheckoutDrawer()" class="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-none"></div>
         <div id="drawerPanel" class="bottom-sheet bg-white w-full h-[90dvh] rounded-t-2xl flex flex-col pointer-events-auto border-t shadow-2xl">
@@ -277,18 +264,23 @@
         function loadQR() { if(unsubQR) unsubQR(); unsubQR = db.collection('settings').doc('qr').onSnapshot(d => { if(d.exists) { gcashQR = d.data().gcash||null; mayaQR = d.data().maya||null; } updateQRPreviews(); }); }
         function updateQRPreviews() { const g = document.getElementById("gcashQrPreview"), m = document.getElementById("mayaQrPreview"); if(gcashQR) g.innerHTML = `<img src="${gcashQR}" class="w-full h-full object-cover">`; else g.innerHTML = `<i class="fa-solid fa-camera text-2xl"></i>`; if(mayaQR) m.innerHTML = `<img src="${mayaQR}" class="w-full h-full object-cover">`; else m.innerHTML = `<i class="fa-solid fa-camera text-2xl"></i>`; }
 
-        // Auto-create default admin
+        // Auto-create default admin (silently, no error shown)
         async function ensureAdmin() {
-            try { await auth.signInWithEmailAndPassword("admin@test.com", "admin123"); await auth.signOut(); } catch(e) {
+            try {
+                await auth.signInWithEmailAndPassword("admin@test.com", "admin123");
+                await auth.signOut();
+            } catch(e) {
                 if(e.code === 'auth/user-not-found') {
-                    const u = await auth.createUserWithEmailAndPassword("admin@test.com", "admin123");
-                    await db.collection('users').doc(u.user.uid).set({ role: "admin" });
-                    await auth.signOut();
+                    try {
+                        const u = await auth.createUserWithEmailAndPassword("admin@test.com", "admin123");
+                        await db.collection('users').doc(u.user.uid).set({ role: "admin" });
+                        await auth.signOut();
+                    } catch(createErr) { console.error("Admin creation failed", createErr); }
                 }
             }
         }
 
-        // Staff Creation (Cloud Function)
+        // Staff Creation
         async function createStaffViaFunction() {
             const email = document.getElementById("staffEmail").value.trim();
             const pwd = document.getElementById("staffPassword").value;
@@ -308,7 +300,8 @@
             const email = document.getElementById("loginEmail").value.trim();
             const pwd = document.getElementById("loginPassword").value;
             const errDiv = document.getElementById("loginErrorMsg");
-            if(loginAttempts >= 5) { errDiv.innerText = "Too many attempts"; errDiv.classList.remove("hidden"); return; }
+            if(loginAttempts >= 5) { errDiv.innerText = "Too many attempts. Try again later."; errDiv.classList.remove("hidden"); return; }
+            if(!email || !pwd) { errDiv.innerText = "Please enter email and password"; errDiv.classList.remove("hidden"); return; }
             try {
                 const cred = await auth.signInWithEmailAndPassword(email, pwd);
                 loginAttempts = 0;
@@ -334,7 +327,15 @@
                     loadProducts(); loadTransactions(); loadSettings(); loadQR();
                     refreshUI(); switchUserView("cashier");
                 }, 300);
-            } catch(err) { loginAttempts++; errDiv.innerText = err.message; errDiv.classList.remove("hidden"); }
+            } catch(err) {
+                loginAttempts++;
+                let errorMessage = err.message;
+                if(errorMessage.includes("auth/invalid-credential") || errorMessage.includes("auth/wrong-password") || errorMessage.includes("auth/user-not-found")) {
+                    errorMessage = "Invalid email or password";
+                }
+                errDiv.innerText = errorMessage;
+                errDiv.classList.remove("hidden");
+            }
         }
 
         function logout() {
@@ -431,7 +432,7 @@
             else if(adminTab === "qr") updateQRPreviews();
         }
         function renderLedger() { const div = document.getElementById("ledgerRecords"); if(!transactions.length) div.innerHTML = "<p class='text-center text-xs'>No records</p>"; else div.innerHTML = transactions.map(log => `<div class="bg-white border p-2 rounded-lg text-[10px]"><div class="flex justify-between"><span class="font-bold">${log.id}</span><span>₱${log.total.toFixed(2)}</span></div><div class="text-slate-400">${formatDate(log.date.toDate())} | ${log.type} | ${log.payment}</div><div class="mt-1 text-[9px]">${log.items.map(i=>`${i.name} x${i.qty}`).join(', ')}</div></div>`).join(''); }
-        function exportLedgerData() { if(!transactions.length) { alert("No data"); return; } const flat = []; transactions.forEach(tx => { const dt = formatDate(tx.date.toDate()); tx.items.forEach(item => { flat.push({ "Order ID": tx.id, "Date": dt, "Type": tx.type, "Payment": tx.payment, "Product": item.name, "Qty": item.qty, "Price": item.price, "Line Total": item.qty*item.price, "Discount": tx.discount, "Net": tx.total }); }); }); XLSX.writeFile(XLSX.utils.book_new(XLSX.utils.book_append_sheet(XLSX.utils.json_to_sheet(flat), "Sales")), `ArchXGo_${new Date().toISOString().split('T')[0]}.xlsx`); }
+        function exportLedgerData() { if(!transactions.length) { alert("No data"); return; } const flat = []; transactions.forEach(tx => { const dt = formatDate(tx.date.toDate()); tx.items.forEach(item => { flat.push({ "Order ID": tx.id, "Date": dt, "Type": tx.type, "Payment": tx.payment, "Product": item.name, "Qty": item.qty, "Price": item.price, "Line Total": item.qty*item.price, "Discount": tx.discount, "Net": tx.total }); }); }); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(flat), "Sales"); XLSX.writeFile(wb, `ArchXGo_${new Date().toISOString().split('T')[0]}.xlsx`); }
         function renderCartStep1() { const container = document.getElementById("cartItemsListStep1"); if(!cart.length) { closeCheckoutDrawer(); return; } container.innerHTML = cart.map(i => `<div class="bg-white p-2 rounded-xl border"><div class="flex justify-between"><div><h5 class="font-bold text-sm">${i.name}</h5><p class="text-[10px] font-mono text-blue-600">₱${(i.price*i.qty).toFixed(2)}</p></div><div class="flex gap-2 bg-slate-100 rounded-lg px-2 py-1"><button onclick="adjustQty('${i.id}',-1)" class="w-6 h-6 flex items-center justify-center rounded-full bg-white shadow">-</button><span class="font-mono w-6 text-center font-bold">${i.qty}</span><button onclick="adjustQty('${i.id}',1)" class="w-6 h-6 flex items-center justify-center rounded-full bg-white shadow">+</button></div></div><input type="text" value="${i.notes||''}" onchange="assignNote('${i.id}',this.value)" placeholder="Notes..." class="w-full mt-1 bg-slate-50 border text-[9px] rounded-lg px-2 py-1"></div>`).join(''); }
         function goToPaymentStep() { document.getElementById("stepOrderCard").style.display = "none"; document.getElementById("stepPaymentCard").style.display = "flex"; }
         function goBackToOrder() { document.getElementById("stepPaymentCard").style.display = "none"; document.getElementById("stepOrderCard").style.display = "flex"; renderCartStep1(); }
